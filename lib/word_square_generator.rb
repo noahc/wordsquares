@@ -6,23 +6,39 @@ class WordSquareGenerator
     @size_of_square = n
     @word_list_name = word_list_name
     @word_list = word_list
-  end
-
-  def render(words)
-     p words.join("\n")
+    @generated_list = nil
   end
 
   def word_square_word_list
     @word_list.each do |word|
-      get_all_words_that_start_with(word[1]).each do |word2|
-        get_all_words_that_start_with(word[2]+word2[2]).each do |word3|
-          get_all_words_that_start_with(word[3]+word2[3]+word3[3]).each do |word4|
-            list = [word, word2, word3, word4]
-            return list if is_list_valid?(list)
-          end
+      possibilities = build_possibilities([[word]])
+      unless possibilities.nil?
+        possibilities.each do |p|
+          @generated_list = p if is_list_valid?(p)
         end
       end
+      break if @generated_list
     end
+    return @generated_list || "No results found"
+  end
+
+  def build_possibilities(word_list)
+    if word_list[0].length == @size_of_square
+      return word_list
+    else
+      return_value = []
+      word_list.each do |list|
+        possible_next_words(list).each do |next_word|
+          return_value << list + [next_word]
+        end
+      end
+      build_possibilities(return_value) unless return_value == []
+    end
+  end
+
+  def possible_next_words(list)
+    start_of_next_word = list.map{|w| w[list.length]}.join
+    get_all_words_that_start_with(start_of_next_word)
   end
 
   def get_all_words_that_start_with(string)
@@ -33,36 +49,15 @@ class WordSquareGenerator
     return_array
   end
 
-
   def is_list_valid?(list)
     (0..@size_of_square - 1).each do |n|
       (0..@size_of_square - 2).each do |m|
         return false if list[n][m] != list [m][n]
       end
      end
-    true
+    @generated_list = list unless @generated_list
   end
 
-  def build_word_list_based_on_word(word)
-    list = []
-    @word_list.each do |word_list_word| 
-      binding.pry
-      next unless word_list_word.start_with?(*word[1..-1].scan(/./))
-      include_count = 0
-      word.scan(/./).each do |char|
-        if word_list_word.count(char).to_i >= 1
-          include_count = include_count + 1
-        end
-        break if include_count >= 2
-      end
-      if include_count >= 2
-        list << word_list_word
-      end
-    end
-    list
-  end
-
-#private
   def word_list
     word_list = []
     file = File.open("wordlist/#{@word_list_name}")
@@ -74,4 +69,3 @@ class WordSquareGenerator
     word_list
   end 
 end
-

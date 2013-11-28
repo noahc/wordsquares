@@ -3,7 +3,6 @@ apple
 joe
 bird
 card
-dart
 area
 rear
 birdbird
