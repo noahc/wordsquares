@@ -21,6 +21,7 @@ class WordSquareGenerator
     end
     return @generated_list || "No results found"
   end
+private
 
   def build_possibilities(word_list)
     if word_list[0].length == @size_of_square
